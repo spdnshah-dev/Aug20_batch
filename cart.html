@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Cart — ShopLane</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<script src="shop.js"></script>
+</head>
+<body>
+<header class="top"><div class="in">
+  <a class="logo" href="index.html">Shop<span>Lane</span></a>
+  <a class="cartlink" href="cart.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>Cart <span id="cart-count" class="badge" hidden>0</span></a>
+</div></header>
+<div class="demo">Demo store — no real orders are placed and no payment is taken.</div>
+<div class="steps"><span class="on">1 Cart</span><span>2 Address &amp; payment</span><span>3 Order placed</span></div>
+
+<main class="wrap" id="app"></main>
+
+<script>
+(function () {
+  var L = window.ShopLane, app = document.getElementById('app');
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function render() {
+    var cart = L.getCart();
+    var b = document.getElementById('cart-count'); var n = L.count(cart); b.textContent = n; b.hidden = n === 0;
+    if (!cart.length) {
+      app.innerHTML = '<section class="card main empty"><h1>Your cart is empty</h1><p class="muted">Add the Galaxy S23 Ultra to get started.</p><a class="btn dark" style="max-width:260px;margin:16px auto 0" href="index.html">Continue shopping</a></section>';
+      return;
+    }
+    var t = L.totals(cart);
+    app.innerHTML =
+      '<section class="main"><div class="card"><h1>My Cart (' + t.count + ')</h1><p class="muted">Free delivery on this order</p>' +
+      t.items.map(function (i, k) {
+        var thumb = i.img ? '<div class="thumb" style="background-image:url(' + esc(i.img) + ')"></div>' : '<div class="thumb">' + (i.icon || '📦') + '</div>';
+        var comboNote = i.kind === 'acc' && i.combo ? (i.unit === i.combo ? '<span class="tag">Combo price applied</span>' : '<span class="muted">Combo price applies when bought with the phone</span>') : '';
+        return '<div class="item">' + thumb + '<div class="info"><span class="name">' + esc(i.name) + '</span>' +
+          (i.variant ? '<span class="muted">' + esc(i.variant) + '</span>' : '') +
+          '<span><span class="price">' + L.inr(i.unit) + '</span>' + (i.mrp && i.mrp > i.unit ? '<span class="strike">' + L.inr(i.mrp) + '</span>' : '') + '</span>' + comboNote +
+          '<div class="row"><div class="qty"><button aria-label="Decrease quantity" data-dec="' + k + '"' + (i.qty <= 1 ? ' disabled' : '') + '>−</button><span>' + i.qty + '</span><button aria-label="Increase quantity" data-inc="' + k + '"' + (i.qty >= 5 ? ' disabled' : '') + '>+</button></div>' +
+          '<button class="link" data-rm="' + k + '">Remove</button></div></div></div>';
+      }).join('') +
+      '</div></section>' +
+      '<aside class="side"><div class="card sum"><h2>Price details</h2>' +
+      '<div><span>Price (' + t.count + ' item' + (t.count > 1 ? 's' : '') + ')</span><span>' + L.inr(t.mrp) + '</span></div>' +
+      '<div><span>Discount</span><span class="tag">− ' + L.inr(t.discount) + '</span></div>' +
+      '<div><span>Delivery</span><span class="tag">Free</span></div>' +
+      '<div class="tot"><span>Total amount</span><span>' + L.inr(t.total) + '</span></div>' +
+      '<p class="save">You save ' + L.inr(t.discount) + ' on this order</p>' +
+      '<a class="btn primary" href="checkout.html">PLACE ORDER</a><a class="btn ghost" href="index.html">Continue shopping</a></div></aside>';
+  }
+  app.addEventListener('click', function (e) {
+    var el = e.target.closest('button'); if (!el) return;
+    var cart = L.getCart();
+    if (el.dataset.inc != null) cart[+el.dataset.inc].qty = Math.min(5, cart[+el.dataset.inc].qty + 1);
+    else if (el.dataset.dec != null) cart[+el.dataset.dec].qty = Math.max(1, cart[+el.dataset.dec].qty - 1);
+    else if (el.dataset.rm != null) cart.splice(+el.dataset.rm, 1);
+    else return;
+    L.setCart(cart); render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

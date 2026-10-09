@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order Placed — ShopLane</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<script src="shop.js"></script>
+</head>
+<body>
+<header class="top"><div class="in">
+  <a class="logo" href="index.html">Shop<span>Lane</span></a>
+  <a class="cartlink" href="cart.html"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>Cart <span id="cart-count" class="badge" hidden>0</span></a>
+</div></header>
+<div class="demo">Demo store — this is a test order. Nothing will be shipped or charged.</div>
+<div class="steps"><span class="done">✓ Cart</span><span class="done">✓ Address &amp; payment</span><span class="on">3 Order placed</span></div>
+
+<main class="wrap" id="app"></main>
+
+<script>
+(function () {
+  var L = window.ShopLane, o = L.lastOrder(), app = document.getElementById('app');
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  if (!o) {
+    app.innerHTML = '<section class="card main empty"><h1>No recent order</h1><p class="muted">Orders you place will show up here.</p><a class="btn dark" style="max-width:260px;margin:16px auto 0" href="index.html">Start shopping</a></section>';
+    return;
+  }
+  var fmt = function (iso) { return new Date(iso).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
+  var a = o.address;
+  app.innerHTML =
+    '<section class="main">' +
+      '<div class="card" style="text-align:center"><div class="tick">✓</div><h1>Order placed successfully!</h1>' +
+      '<p class="muted">Thank you, ' + esc(a.name.split(' ')[0]) + '. Your order ID is <b style="color:#1A1D1F">' + esc(o.id) + '</b></p>' +
+      '<p style="margin:12px 0 0;font-weight:700;color:#1E7A46">Expected delivery by ' + fmt(o.deliverBy) + '</p></div>' +
+      '<div class="card"><h2>Items in this order</h2>' +
+      o.items.map(function (i) {
+        var thumb = i.img ? '<div class="thumb" style="background-image:url(' + esc(i.img) + ')"></div>' : '<div class="thumb">' + (i.icon || '📦') + '</div>';
+        return '<div class="item">' + thumb + '<div class="info"><span class="name">' + esc(i.name) + '</span>' + (i.variant ? '<span class="muted">' + esc(i.variant) + '</span>' : '') +
+          '<span class="muted">Qty ' + i.qty + '</span><span class="price">' + L.inr(i.line) + '</span></div></div>';
+      }).join('') + '</div>' +
+    '</section>' +
+    '<aside class="side" style="display:flex;flex-direction:column;gap:20px">' +
+      '<div class="card"><h2>Delivering to</h2><p style="margin:0;font-weight:700">' + esc(a.name) + '</p><p style="margin:4px 0 0" class="muted">' +
+        esc(a.addr) + (a.landmark ? ', near ' + esc(a.landmark) : '') + '<br>' + esc(a.city) + ', ' + esc(a.state) + ' – ' + esc(a.pin) + '<br>Phone: ' + esc(a.phone) + '</p></div>' +
+      '<div class="card sum"><h2>Payment</h2><div class="kv"><b>Method</b><span>' + esc(o.payment) + '</span><b>Placed on</b><span>' + fmt(o.placed) + '</span></div>' +
+        '<div style="margin-top:10px"><span>Price</span><span>' + L.inr(o.mrp) + '</span></div><div><span>Discount</span><span class="tag">− ' + L.inr(o.discount) + '</span></div>' +
+        '<div><span>Delivery</span><span class="tag">Free</span></div><div class="tot"><span>Order total</span><span>' + L.inr(o.total) + '</span></div>' +
+        '<a class="btn dark" href="index.html">Continue shopping</a></div>' +
+    '</aside>';
+})();
+</script>
+</body>
+</html>
